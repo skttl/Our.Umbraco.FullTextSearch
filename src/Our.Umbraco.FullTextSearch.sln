@@ -5,6 +5,19 @@ VisualStudioVersion = 16.0.28729.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Our.Umbraco.FullTextSearch", "Our.Umbraco.FullTextSearch\Our.Umbraco.FullTextSearch.csproj", "{FE10CB03-1DBB-4C16-873A-915A5829C0B6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{67E96004-B7AE-46B8-B766-65C949EE9E32}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\developers-guide.md = ..\docs\developers-guide.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{94601F9F-D7CE-4241-884B-0E0F0410E491}"
+	ProjectSection(SolutionItems) = preProject
+		..\build\install.ps1 = ..\build\install.ps1
+		..\build\package.nuspec = ..\build\package.nuspec
+		..\build\package.proj = ..\build\package.proj
+		..\build\package.xml = ..\build\package.xml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

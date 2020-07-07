@@ -122,11 +122,23 @@ namespace Our.Umbraco.FullTextSearch.Services
                     query.Append($" AND ({rootNodeGroup})");
                 }
 
-                var publishedPropertyName = string.IsNullOrEmpty(_search.Culture) ? "__Published" : $"__Published_{_search.Culture}";
-                query.Append($" AND (__IndexType:content AND {publishedPropertyName}:y)");
+
+                var publishedPropertySuffix = string.IsNullOrEmpty(_search.Culture) ? "" : $"_{_search.Culture}";
+                var publishedQuery = $"((__VariesByCulture:y AND __Published{publishedPropertySuffix}:y) OR (__VariesByCulture:n AND __Published:y))";
+                query.Append($" AND (__IndexType:content AND {publishedQuery})");
+
+                var disallowedContentTypes = _fullTextConfig.GetDisallowedContentTypeAliases();
+                if (disallowedContentTypes.Any()) query.Append($" AND -(__NodeTypeAlias:{string.Join(" ", disallowedContentTypes)})");
+
+                var disallowedPropertyAliases = _fullTextConfig.GetDisallowedPropertyAliases();
+                if (disallowedPropertyAliases.Any())
+                {
+                    var disallowedPropertyAliasGroup = string.Join(" OR ", disallowedPropertyAliases.Select(x => $"{x}_{_search.Culture}:1 OR {x}:1"));
+                    query.Append($" AND -({disallowedPropertyAliasGroup})");
+                }
 
                 var searcher = index.GetSearcher();
-                _logger.Info<SearchService>("Trying to search for {query}", query.ToString());
+                _logger.Debug<SearchService>("Trying to search for {query}", query.ToString());
                 return searcher.CreateQuery().NativeQuery(query.ToString()).Execute(_search.PageLength * _currentPage);
             }
 
@@ -233,7 +245,7 @@ namespace Our.Umbraco.FullTextSearch.Services
                     var fuzzyLocal = property.FuzzyMultiplier;
                     if (fuzzyLocal < 1.0 && fuzzyLocal > 0.0)
                     {
-                        fuzzyString = "~" + fuzzyLocal;
+                        fuzzyString = "~" + fuzzyLocal.ToString(CultureInfo.InvariantCulture);
                     }
                 }
             }
@@ -254,7 +266,7 @@ namespace Our.Umbraco.FullTextSearch.Services
                     var fuzzyLocal = property.FuzzyMultiplier;
                     if (fuzzyLocal < 1.0 && fuzzyLocal > 0.0)
                     {
-                        fuzzyString = "~" + fuzzyLocal;
+                        fuzzyString = "~" + fuzzyLocal.ToString(CultureInfo.InvariantCulture);
                     }
                 }
             }

@@ -17,7 +17,7 @@ namespace Our.Umbraco.FullTextSearch.Migrations
             Logger.Debug<CreateCacheTable>("Running migration {MigrationStep}", "CreateCacheTable");
 
             // Lots of methods available in the MigrationBase class - discover with this.
-            if (TableExists("BlogComments") == false)
+            if (TableExists("FullTextCache") == false)
             {
                 Create.Table<CacheTableSchema>().Do();
             }

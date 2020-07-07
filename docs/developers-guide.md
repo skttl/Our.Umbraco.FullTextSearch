@@ -1,14 +1,15 @@
+# Full Text Search
 FullTextSearch works by extending the default `ExternalIndex` in Umbraco with its own fields for full text content. It renders a page by making a http request to the page, and indexes the content. If the server is unable to make the request, no content will be indexed.
 
 The rendered content of nodes is cached in a seperate database table, so rendering can be skipped when reindexing Examine. FullTextSearch listens to events from the `ContentCacheRefresher`, and updates its own cache upon the `CacheUpdated` event.
 
 The rendering is managed by a queue of tasks. You can always see the current queue on the FullTextSearch dashboard in the settings section of Umbraco. From here, you can also rebuild and reindex all nodes.
 
-#Installation
+## Installation
 Install using the nuget package, or from the package repository.
 This package requires Umbraco 8.1 as a minimum version.
 
-#Configuration
+## Configuration
 FullTextSearch needs to be enabled in your web.config by adding an application setting with the key `FullTextSearch.Enabled` and a value of True.
 
 Here is an overview of the different config settings you can add.
@@ -21,9 +22,11 @@ The name of the field containing the title of the page in the index. The default
 
 `FullTextSearch.DisallowedContentTypeAliases`
 Aliases of content types that should NOT be indexed by FullTextSearch. If you add an alias here, the nodes of that alias will not be rendered and indexed by FullTextSearch. By default nodes without templates are excluded, so you don't need to add them here.
+Adding to this config on a site already indexed doesn't clean the index. You have to do this manually - but the search will exclude nodes of the disallowed types for you.
 
 `FullTextSearch.DisallowedPropertyAliases`
 You can use this setting to create your own "umbracoNaviHide" for FullTextSearch. Add a boolean property to your document type, and reference its alias in this setting. If the node has that property set to true, it will be excluded from full text indexing.
+Adding to this config on a site already indexed doesn't clean the index. You have to do this manually - but the search will exclude nodes with the disallowed properties for you.
 
 `FullTextSearch.FullTextFieldName`
 The field name where FullTextSearch should store the rendered full text. The default of this is `FullTextSearch`.
@@ -155,7 +158,7 @@ Here I also include `IConfig` as a dependency, enabling me to get different keys
 
 On this search, I enable highlighting of text in the output by using `EnableHightling()`, I then configure it to use `metaTitle` and `nodeName` as fields for getting the title of each page (that way `nodeName` is used, if `metaTitle` is empty or doesn't exist). I configure it to use `metaDescription` or the default text field for the summary. And then I set the summary length to be 160 characters (the default is 300), and the pagelength to be 10 results per page (the default is 0, meaning no pagination will occur). Lastly I set the culture, to make FullTextSearch look for results with the same culture as the request.
 
-#Rendering the search results
+## Rendering the search results
 ```
 @if (Model.FullTextSearchResult != null)
 {
@@ -236,7 +239,7 @@ Gets the IPublishedContent for the search result.
 
 All the extension methods are cached per request, so you don't get performance penalties for calling `Url()` or `Content()` twice on the same result.
 
-#Configuring the search
+## Configuring the search
 The search service takes a `Search` object, which can be configured fluently in numerous ways. You create one by writing `new Search(string searchTerm)`, and from there you can add the following configuration:
 
 `AddTitleProperties(string[] aliases)` or `AddTitleProperty(string alias)`
