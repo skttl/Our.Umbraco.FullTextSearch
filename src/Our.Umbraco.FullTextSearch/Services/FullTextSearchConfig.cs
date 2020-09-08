@@ -29,6 +29,8 @@ namespace Our.Umbraco.FullTextSearch.Services
         public List<string> XPathsToRemove { get; internal set; }
         public string FullTextContentField { get; internal set; }
         public string FullTextPathField { get; internal set; }
+        public string FullTextLastCachedField { get; internal set; }
+        public List<CacheExpiryRule> CacheExpiryRules { get; internal set; }
 
 
         public FullTextSearchConfig(ILogger logger)
@@ -61,6 +63,8 @@ namespace Our.Umbraco.FullTextSearch.Services
             XPathsToRemove = new List<string>();
             FullTextContentField = "FullTextContent";
             FullTextPathField = "FullTextPath";
+            FullTextLastCachedField = "FullTextLastCached";
+            CacheExpiryRules = new List<CacheExpiryRule>();
         }
 
         private void LoadXmlConfig()
@@ -149,8 +153,29 @@ namespace Our.Umbraco.FullTextSearch.Services
                     var fullTextPath = examineFieldNames.SelectSingleNode("/FullTextPath");
                     if (fullTextPath != null && !fullTextPath.InnerText.IsNullOrWhiteSpace())
                         FullTextPathField = fullTextPath.InnerText;
+
+                    var fullTextLastCached = examineFieldNames.SelectSingleNode("/FullTextLastCached");
+                    if (fullTextLastCached != null && !fullTextLastCached.InnerText.IsNullOrWhiteSpace())
+                        FullTextLastCachedField = fullTextLastCached.InnerText;
                 }
 
+            }
+
+            var cacheExpiryRules = FullTextSearchNode.SelectNodes("/CacheExpiryRules/add");
+            if (cacheExpiryRules != null)
+            {
+                foreach (XmlNode cacheExpiryRule in cacheExpiryRules)
+                {
+                    if (!int.TryParse(cacheExpiryRule.Attributes["expires"]?.Value, out int expires) && expires > 0)
+                    {
+                        CacheExpiryRules.Add(
+                            new CacheExpiryRule(
+                                expires,
+                                cacheExpiryRule.Attributes["contentTypeAlias"]?.Value,
+                                cacheExpiryRule.Attributes["xPath"]?.Value
+                            ));
+                    }
+                }
             }
         }
 
@@ -289,6 +314,48 @@ namespace Our.Umbraco.FullTextSearch.Services
             var fieldNames = GetOrCreateSingleNode(indexing, "ExamineFieldNames");
             var node = GetOrCreateSingleNode(fieldNames, "FullTextPath");
             node.InnerText = value;
+        }
+
+        public void SetFullTextLastCachedField(string value)
+        {
+            var indexing = GetOrCreateSingleNode(FullTextSearchNode, "Indexing");
+            var fieldNames = GetOrCreateSingleNode(indexing, "ExamineFieldNames");
+            var node = GetOrCreateSingleNode(fieldNames, "FullTextLastCached");
+            node.InnerText = value;
+        }
+
+        public void AddCacheExpiryRule(CacheExpiryRule value)
+        {
+            if (CacheExpiryRules.Contains(value)) return;
+
+            CacheExpiryRules.Add(value);
+        }
+
+        public void RemoveCacheExpiryRule(CacheExpiryRule value)
+        {
+            if (!CacheExpiryRules.Contains(value)) return;
+
+            CacheExpiryRules.Remove(value);
+        }
+
+        public void SetCacheExpiryRules(List<CacheExpiryRule> values)
+        {
+            var cacheExpiryRules = GetOrCreateSingleNode(FullTextSearchNode, "CacheExpiryRules");
+            while (cacheExpiryRules.HasChildNodes)
+                cacheExpiryRules.RemoveChild(cacheExpiryRules.FirstChild);
+
+            foreach (var value in values)
+            {
+                var newValue = XmlDocument.CreateElement("add");
+                if (!value.ContentTypeAlias.IsNullOrWhiteSpace())
+                    newValue.SetAttribute("contentTypeAlias", value.ContentTypeAlias);
+
+                if (!value.XPath.IsNullOrWhiteSpace())
+                    newValue.SetAttribute("xPath", value.XPath);
+
+                newValue.SetAttribute("expires", value.Expires.ToString());
+                cacheExpiryRules.AppendChild(newValue);
+            }
         }
 
     }
