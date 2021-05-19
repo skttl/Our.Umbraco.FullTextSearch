@@ -44,7 +44,7 @@ namespace Our.Umbraco.FullTextSearch.Models
 
         public Search SetSearchType(SearchType searchType)
         {
-            SearchType = SearchType;
+            SearchType = searchType;
             return this;
         }
 
