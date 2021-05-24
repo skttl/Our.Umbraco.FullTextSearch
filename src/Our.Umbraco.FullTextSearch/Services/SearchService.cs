@@ -124,9 +124,10 @@ namespace Our.Umbraco.FullTextSearch.Services
                     query.Append($" AND ({rootNodeGroup})");
                 }
 
-                if (_search.AllowedContentTypes.Any())
+                var allowedContentTypes = _search.AllowedContentTypes.Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
+                if (allowedContentTypes.Any())
                 {
-                    var contentTypeGroup = string.Join(" OR ", _search.AllowedContentTypes.Select(x =>
+                    var contentTypeGroup = string.Join(" OR ", allowedContentTypes.Select(x =>
                         $"__NodeTypeAlias:{x}"));
                     query.Append($" AND ({contentTypeGroup})");
                 }
